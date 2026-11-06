@@ -1,0 +1,36 @@
+.github/workflows/news.yml
+
+name: Pak Pulse News Automation
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 */3 * * *"
+
+jobs:
+  fetch-news:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get BBC News RSS
+        run: |
+          python - <<'PY'
+          import urllib.request
+          import xml.etree.ElementTree as ET
+
+          url = "https://feeds.bbci.co.uk/news/world/rss.xml"
+          request = urllib.request.Request(
+              url,
+              headers={"User-Agent": "PakPulse/1.0"}
+          )
+
+          with urllib.request.urlopen(request, timeout=30) as response:
+              root = ET.fromstring(response.read())
+
+          items = root.findall("./channel/item")
+
+          print("PAK PULSE - Latest BBC News")
+          for item in items[:5]:
+              print("\nHeadline:", item.findtext("title"))
+              print("Link:", item.findtext("link"))
+          PY
